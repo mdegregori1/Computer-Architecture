@@ -2,14 +2,22 @@
 
 import sys
 
+LDI = 0b10000010
+PRN = 0b01000111
+HLT = 0b00000001
+
+
+
 class CPU:
     """Main CPU class."""
+
 
     def __init__(self):
         """Construct a new CPU."""
         self.register = [0] * 8
         self.ram = [0] * 256
         self.pc = 0
+        self.running = True
 
     def ram_read(self, address):
         return self.ram[address]
@@ -70,4 +78,28 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        pass
+        while self.running == True:
+            inst = self.ram[self.pc]
+            # set the index at the one below the LDI inst, and its value below that 
+            num = self.ram_read(self.pc + 1)
+            val = self.ram_read(self.pc + 2)
+
+            if inst == LDI:
+                self.register[num] = val
+                self.pc += 3 # add 3 to go to prm
+            elif inst == PRN:
+                print(self.register[num])
+                self.pc += 2 # add 3 to go to HLT (halt)
+            elif inst == HLT:
+                # if halt, set running to false to stop loop
+                self.running == False
+            else:
+                # print error, set false
+                print(f"Unknown instruction: {inst}")
+                self.running == False
+
+
+
+
+
+
