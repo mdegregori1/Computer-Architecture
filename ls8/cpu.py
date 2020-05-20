@@ -49,10 +49,9 @@ class CPU:
                 if string_val == "":
                     continue 
                 value = int(string_val, 2)
-                print(value)
-                # self.ram[address] = value
-                # address += 1
-                break
+                self.ram[address] = value
+                address += 1
+
       
 
 
