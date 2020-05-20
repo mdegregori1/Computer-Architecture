@@ -5,7 +5,7 @@ import sys
 LDI = 0b10000010
 PRN = 0b01000111
 HLT = 0b00000001
-
+MUL = 0b10100010
 
 
 class CPU:
@@ -14,9 +14,14 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        self.register = [0] * 8
+        self.reg = [0] * 8
         self.ram = [0] * 256
         self.pc = 0
+        self.branchtable = {}
+        self.branchtable[LDI] = self.handle_LDI
+        self.branchtable[PRN] = self.handle_PRN
+        self.branchtable[HLT] = self.handle_HLT
+        self.branchtable[MUL] = self.handle_MUL
 
 
     def ram_read(self, address):
@@ -24,7 +29,7 @@ class CPU:
 
     def ram_write(self, value, address):
         self.ram[address] = value
-
+ 
     def load(self):
         """Load a program into memory."""
 
@@ -53,14 +58,15 @@ class CPU:
                 address += 1
 
       
-
-
+    # add op == "MUL"
+    # looks like add, but with *=
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
 
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
-        #elif op == "SUB": etc
+        elif op == "MUL":
+            self.reg[reg_a] *= self.reg[reg_b]
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -83,31 +89,44 @@ class CPU:
             print(" %02X" % self.reg[i], end='')
 
         print()
+    
+       
+    def handle_LDI(self): # sets register -> value
+        operand_a = self.ram_read(self.pc + 1) 
+        operand_b = self.ram_read(self.pc + 2)
+
+        # operand_a (register in LDI) = operand_b (value in LDI)
+        self.reg[operand_a] = operand_b
+        self.pc += 3 # down 3 to MUL
+
+    def handle_PRN(self): # print the actual value inside of the register -> like LDI, but only the first part
+        operand_a = self.ram_read(self.pc + 1) 
+
+        # print(register at location operand_a)
+        print(self.reg[operand_a])
+        self.pc += 2 # down 2 to HLT
+
+    def handle_MUL(self): #multiply side by side values, must call alu to use mult funct
+        operand_a = self.ram_read(self.pc + 1) 
+        operand_b = self.ram_read(self.pc + 2)
+
+        # pass in name of function and params
+        self.alu("MUL", operand_a, operand_b) 
+        self.pc += 3 
+    
+    def handle_HLT(self):
+        sys.exit(0) #quit
+
 
     def run(self):
         """Run the CPU."""
         running = True
         while running == True:
-            inst = self.ram[self.pc]
-            # set the index at the one below the LDI inst, and its value below that 
-            num = self.ram_read(self.pc + 1)
-            val = self.ram_read(self.pc + 2)
+            # while running, set var IR to fetch value from RAM
+            IR = self.ram[self.pc] 
+            #look up function in branchtable
+            self.branchtable[IR]()
 
-            if inst == LDI:
-                self.register[num] = val
-                self.pc += 3 # add 3 to go to prm
-            elif inst == PRN:
-                print(self.register[num])
-                self.pc += 2 # add 3 to go to HLT (halt)
-            elif inst == HLT:
-                # if halt, set running to false to stop loop
-                running == False
-                break
-            else:
-                # print error, set false
-                print(f"Unknown instruction: {inst}")
-                running == False
-                break
 
 
 
