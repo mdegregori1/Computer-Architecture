@@ -11,7 +11,6 @@ MUL = 0b10100010
 class CPU:
     """Main CPU class."""
 
-
     def __init__(self):
         """Construct a new CPU."""
         self.reg = [0] * 8
@@ -23,7 +22,7 @@ class CPU:
         self.branchtable[HLT] = self.handle_HLT
         self.branchtable[MUL] = self.handle_MUL
 
-
+# creates a dic, can use a method key = (branchtable[x])
     def ram_read(self, address):
         return self.ram[address]
 
