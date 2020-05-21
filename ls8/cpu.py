@@ -137,11 +137,11 @@ class CPU:
     def handle_POP(self):
         # set value as memory address at SP 
         value = self.ram_read(self.reg[SP]) #4a from ex
-        #increase the stack pointer on pop 
-        self.reg[SP] += 1 #F1->F2
         # save reg + 1 to find the address = now, reg_num should be = mem address
-        reg_num = self.ram_read(self.pc +1)
+        reg_num = self.ram_read(self.pc +1) #register address, set its value to the val of SP
         self.reg[reg_num] = value
+        #increase the stack pointer on pop -> previously pushed item on stack
+        self.reg[SP] += 1 #F1->F2
         #increment by two to halt
         self.pc += 2
 
