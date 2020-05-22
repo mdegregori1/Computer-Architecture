@@ -8,6 +8,12 @@ HLT = 0b00000001
 MUL = 0b10100010
 POP = 0b01000110 
 PUSH = 0b01000101 
+CALL = 0b01010000
+RET = 0b00010001
+ADD = 0b10100000
+
+
+
 
 SP = 7 
 
@@ -26,6 +32,9 @@ class CPU:
         self.branchtable[MUL] = self.handle_MUL
         self.branchtable[POP] = self.handle_POP
         self.branchtable[PUSH] = self.handle_PUSH
+        self.branchtable[CALL] = self.handle_CALL
+        self.branchtable[RET] = self.handle_RET
+        self.branchtable[ADD] = self.handle_ADD
         
 
     def ram_read(self, address): 
@@ -145,7 +154,34 @@ class CPU:
         #increment by two to halt
         self.pc += 2
 
+    def handle_CALL(self):
+        # after call -> pushed to stack
+        # decrement the stack
+        self.reg[SP] -= 1
+        # create address, two away from intial pc
+        address = self.pc + 2
+        # sp address = register address
+        self.ram[self.reg[SP]] = address
 
+        reg_num = self.ram_read(self.pc + 1)
+        self.pc = self.reg[reg_num]
+        
+
+    def handle_RET(self):
+        # Return from subroutine -> pop the val from the top of the stack, store it in pc 
+        self.pc = self.ram[self.reg[SP]]
+        # increment SP
+        self.reg[SP] += 1
+
+    def handle_ADD(self): 
+        # add val of a and b 
+        operand_a = self.ram_read(self.pc + 1) 
+        operand_b = self.ram_read(self.pc + 2)
+
+        # call alu method
+        self.alu("ADD", operand_a, operand_b)
+        self.pc += 3
+        
     def run(self):
         """Run the CPU."""
 
